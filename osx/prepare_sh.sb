@@ -1,0 +1,85 @@
+;
+; Prepares a shell for the current working directory with file and directory commands.
+; Tested on Mac OS X 10.13.6
+; sandbox-exec -D TTY=$(tty) -D CWD=$(pwd) -f prepare_sh.sb /bin/sh
+;
+(version 1)
+(deny default)
+
+; Allow commands to fork.
+(allow process-fork)
+
+; Allow access to history.
+; sandbox-exec -D TTY=$(tty)
+(allow file-read-metadata file-ioctl
+  (literal (param "TTY"))
+)
+
+; Allow commands to execute and read data.
+(allow process-exec file-read-data file-read-metadata
+  (literal "/bin/cat")
+  (literal "/bin/cp")
+  (literal "/bin/ls")
+  (literal "/bin/mkdir")
+  (literal "/bin/mv")
+  (literal "/bin/rm")
+  (literal "/bin/rmdir")
+  (literal "/bin/sh")
+  (literal "/usr/bin/touch")
+)
+
+; Allow libraries needed by commands to read data.
+(allow file-read-data file-read-metadata
+  (literal "/usr/lib/libncurses.5.4.dylib") ; needed by /bin/sh and /bin/ls commands
+  (literal "/usr/lib/libSystem.B.dylib")
+  (literal "/usr/lib/system/libcache.dylib")
+  (literal "/usr/lib/system/libcommonCrypto.dylib")
+  (literal "/usr/lib/system/libcompiler_rt.dylib")
+  (literal "/usr/lib/system/libcopyfile.dylib")
+  (literal "/usr/lib/system/libcorecrypto.dylib")
+  (literal "/usr/lib/system/libdispatch.dylib")
+  (literal "/usr/lib/system/libdyld.dylib")
+  (literal "/usr/lib/system/libkeymgr.dylib") ; 10
+  (literal "/usr/lib/system/liblaunch.dylib")
+  (literal "/usr/lib/system/libmacho.dylib")
+  (literal "/usr/lib/system/libquarantine.dylib")
+  (literal "/usr/lib/system/libremovefile.dylib")
+  (literal "/usr/lib/system/libsystem_asl.dylib")
+  (literal "/usr/lib/system/libsystem_blocks.dylib")
+  (literal "/usr/lib/system/libsystem_c.dylib")
+  (literal "/usr/lib/system/libsystem_configuration.dylib")
+  (literal "/usr/lib/system/libsystem_coreservices.dylib")
+  (literal "/usr/lib/system/libsystem_darwin.dylib") ; 20
+  (literal "/usr/lib/system/libsystem_dnssd.dylib")
+  (literal "/usr/lib/system/libsystem_info.dylib")
+  (literal "/usr/lib/system/libsystem_m.dylib")
+  (literal "/usr/lib/system/libsystem_malloc.dylib")
+  (literal "/usr/lib/system/libsystem_network.dylib")
+  (literal "/usr/lib/system/libsystem_networkextension.dylib")
+  (literal "/usr/lib/system/libsystem_notify.dylib")
+  (literal "/usr/lib/system/libsystem_sandbox.dylib")
+  (literal "/usr/lib/system/libsystem_secinit.dylib")
+  (literal "/usr/lib/system/libsystem_kernel.dylib") ; 30
+  (literal "/usr/lib/system/libsystem_platform.dylib")
+  (literal "/usr/lib/system/libsystem_pthread.dylib")
+  (literal "/usr/lib/system/libsystem_symptoms.dylib")
+  (literal "/usr/lib/system/libsystem_trace.dylib")
+  (literal "/usr/lib/system/libunwind.dylib")
+  (literal "/usr/lib/system/libxpc.dylib")
+  (literal "/usr/lib/closure/libclosured.dylib")
+  (literal "/usr/lib/libobjc.A.dylib")
+  (literal "/usr/lib/libc++abi.dylib")
+  (literal "/usr/lib/libc++.1.dylib") ; 40
+  (literal "/usr/lib/libutil.dylib") ; needed by /bin/ls command
+)
+
+; Allow traversing through certain directories.
+(allow file-read-data file-read-metadata
+  (subpath "/Users")
+)
+
+; Allow reading data and writing to the current working directory.
+; sandbox-exec -D CWD=$(pwd)
+(allow file-read-data file-read-metadata file-write*
+  (subpath (param "CWD"))
+)
